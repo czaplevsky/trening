@@ -1,3 +1,5 @@
+py
+
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -577,8 +579,8 @@ const exercises = [
 // ─── STATE ───────────────────────────────────────────────────────
 let currentWeek = 0;
 let currentExWeek = 0;
-const realData = {};
-const checkedDays = {};
+const realData = JSON.parse(localStorage.getItem('realData') || '{}');
+const checkedDays = JSON.parse(localStorage.getItem('checkedDays') || '{}');
 
 // ─── TAB SWITCH ──────────────────────────────────────────────────
 function switchTab(name) {
@@ -648,6 +650,7 @@ function toggleCheck(e, idx) {
   e.stopPropagation();
   const key = `${currentWeek}-${idx}`;
   checkedDays[key] = !checkedDays[key];
+  localStorage.setItem('checkedDays', JSON.stringify(checkedDays));
   renderSchedule();
 }
 
@@ -695,6 +698,7 @@ function renderExercises() {
 
 function saveReal(key, val) {
   realData[key] = val;
+  localStorage.setItem('realData', JSON.stringify(realData));
 }
 
 // ─── INIT ────────────────────────────────────────────────────────
