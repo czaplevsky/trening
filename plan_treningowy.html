@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0a">
+<title>Plan Treningowy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface2: #1c1c1c;
+    --border: rgba(255,255,255,0.07);
+    --border-strong: rgba(255,255,255,0.13);
+    --text: #f0f0f0;
+    --text-2: #888;
+    --text-3: #555;
+    --accent: #f0f0f0;
+    --tag-wed: rgba(180,120,255,0.15);
+    --tag-wed-text: #c9a0ff;
+    --tag-fri: rgba(255,120,100,0.15);
+    --tag-fri-text: #ff9a8b;
+    --tag-sat: rgba(80,200,160,0.15);
+    --tag-sat-text: #6ddcb4;
+    --tag-deload: rgba(255,200,80,0.12);
+    --tag-deload-text: #f0c060;
+    --r: 16px;
+    --r-sm: 10px;
+    --safe-top: env(safe-area-inset-top);
+    --safe-bot: env(safe-area-inset-bottom);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ── TOP NAV ── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: calc(var(--safe-top) + 12px) 20px 12px;
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .nav-title { font-size: 17px; font-weight: 500; letter-spacing: -0.3px; }
+  .nav-sub { font-size: 12px; color: var(--text-2); font-weight: 300; margin-top: 1px; }
+
+  /* ── TAB BAR ── */
+  .tab-bar {
+    display: flex;
+    gap: 6px;
+    padding: 12px 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: sticky;
+    top: 65px;
+    z-index: 99;
+  }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-2);
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tab.active {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+    font-weight: 500;
+  }
+
+  /* ── MAIN ── */
+  main { padding: 0 0 calc(var(--safe-bot) + 32px); }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── WEEK SELECTOR ── */
+  .week-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 20px 4px;
+  }
+  .week-label { font-size: 22px; font-weight: 500; letter-spacing: -0.5px; }
+  .week-phase {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text-2);
+    margin-top: 2px;
+  }
+  .week-arrows { display: flex; gap: 8px; }
+  .arrow-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s;
+  }
+  .arrow-btn:active { background: var(--surface2); }
+  .arrow-btn:disabled { opacity: 0.25; cursor: default; }
+
+  /* ── WEEK DOTS ── */
+  .week-dots {
+    display: flex;
+    gap: 6px;
+    padding: 10px 20px 20px;
+  }
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--border-strong);
+    transition: all 0.2s;
+  }
+  .dot.active { width: 18px; border-radius: 3px; background: var(--text); }
+
+  /* ── DAY CARD ── */
+  .day-card {
+    margin: 8px 16px;
+    background: var(--surface);
+    border-radius: var(--r);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .day-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .day-left { display: flex; align-items: center; gap: 12px; }
+  .day-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .day-name { font-size: 15px; font-weight: 500; }
+  .day-activity { font-size: 12px; color: var(--text-2); margin-top: 1px; font-weight: 300; }
+  .day-chevron {
+    font-size: 12px;
+    color: var(--text-3);
+    transition: transform 0.25s ease;
+  }
+  .day-card.open .day-chevron { transform: rotate(180deg); }
+  .day-body { display: none; }
+  .day-card.open .day-body { display: block; }
+
+  /* ── EXERCISE ROW ── */
+  .ex-group { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .ex-group:last-child { border-bottom: none; }
+  .ex-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.4;
+  }
+  .ex-meta {
+    font-size: 11px;
+    color: var(--text-2);
+    margin-top: 2px;
+    font-weight: 300;
+  }
+  .ex-load {
+    margin-top: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+  .ex-load.deload { color: var(--tag-deload-text); }
+
+  /* ── TAG ── */
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+  .tag-wed { background: var(--tag-wed); color: var(--tag-wed-text); }
+  .tag-fri { background: var(--tag-fri); color: var(--tag-fri-text); }
+  .tag-sat { background: var(--tag-sat); color: var(--tag-sat-text); }
+  .tag-deload { background: var(--tag-deload); color: var(--tag-deload-text); }
+
+  /* ── RULE CARD ── */
+  .rule-block {
+    margin: 8px 16px;
+    background: var(--surface);
+    border-radius: var(--r);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .rule-head {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .rule-icon { font-size: 16px; }
+  .rule-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .rule-item:last-child { border-bottom: none; }
+  .rule-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-2);
+    margin-bottom: 4px;
+    letter-spacing: 0.2px;
+  }
+  .rule-text {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--text);
+    font-weight: 300;
+  }
+  .rule-text strong { font-weight: 500; color: var(--text); }
+
+  /* ── SECTION HEADER ── */
+  .sec-header {
+    padding: 28px 20px 12px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+
+  /* ── OVERVIEW GRID ── */
+  .overview-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 0 16px;
+  }
+  .ov-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 14px;
+  }
+  .ov-day { font-size: 11px; color: var(--text-2); font-weight: 500; margin-bottom: 4px; letter-spacing: 0.3px; }
+  .ov-act { font-size: 13px; font-weight: 400; line-height: 1.35; }
+
+  /* ── DELOAD BANNER ── */
+  .deload-banner {
+    margin: 8px 16px;
+    padding: 14px 16px;
+    background: rgba(240,192,96,0.07);
+    border: 1px solid rgba(240,192,96,0.2);
+    border-radius: var(--r);
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--tag-deload-text);
+    line-height: 1.5;
+  }
+  .deload-banner strong { font-weight: 500; }
+
+  /* ── REAL INPUT ── */
+  .real-wrap { margin-top: 8px; display: flex; align-items: center; gap: 8px; }
+  .real-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    padding: 7px 10px;
+    outline: none;
+    -webkit-appearance: none;
+    transition: border-color 0.15s;
+  }
+  .real-input:focus { border-color: rgba(255,255,255,0.3); }
+  .real-input::placeholder { color: var(--text-3); }
+  .real-label { font-size: 10px; color: var(--text-3); flex-shrink: 0; }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    padding: 32px 20px;
+    font-size: 12px;
+    color: var(--text-3);
+    font-weight: 300;
+  }
+
+  /* ── DIVIDER ── */
+  .divider { height: 1px; background: var(--border); margin: 0 16px; }
+
+  /* dot colors */
+  .d-mon { background: #888; }
+  .d-tue { background: #888; }
+  .d-wed { background: var(--tag-wed-text); }
+  .d-thu { background: #888; }
+  .d-fri { background: var(--tag-fri-text); }
+  .d-sat { background: var(--tag-sat-text); }
+  .d-sun { background: #444; }
+
+  /* ── CHECKBOX ── */
+  .day-check {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-strong);
+    background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.2s ease;
+    font-size: 13px;
+    color: transparent;
+  }
+  .day-check.checked {
+    background: #30d158;
+    border-color: #30d158;
+    color: #000;
+  }
+  .day-card.done .day-name { color: var(--text-2); }
+  .day-card.done .day-activity { color: var(--text-3); }
+  .day-card.done .day-dot { opacity: 0.3; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div>
+    <div class="nav-title">Plan Treningowy</div>
+    <div class="nav-sub">Wspinaczka & Siłownia · Tygodnie 13–16</div>
+  </div>
+</nav>
+
+<div class="tab-bar">
+  <button class="tab active" onclick="switchTab('schedule')">Harmonogram</button>
+  <button class="tab" onclick="switchTab('exercises')">Ćwiczenia</button>
+  <button class="tab" onclick="switchTab('rules')">Zasady</button>
+</div>
+
+<main>
+
+<!-- ══════════════════════════════════════════
+     TAB 1: HARMONOGRAM
+══════════════════════════════════════════ -->
+<section id="tab-schedule" class="section active">
+
+  <div class="week-nav">
+    <div>
+      <div class="week-label" id="week-label">Tydzień 13</div>
+      <div class="week-phase" id="week-phase">Rozruch</div>
+    </div>
+    <div class="week-arrows">
+      <button class="arrow-btn" id="btn-prev" onclick="changeWeek(-1)" disabled>←</button>
+      <button class="arrow-btn" id="btn-next" onclick="changeWeek(1)">→</button>
+    </div>
+  </div>
+
+  <div class="week-dots">
+    <div class="dot active" id="dot-0"></div>
+    <div class="dot" id="dot-1"></div>
+    <div class="dot" id="dot-2"></div>
+    <div class="dot" id="dot-3"></div>
+  </div>
+
+  <div id="week-content"></div>
+
+</section>
+
+<!-- ══════════════════════════════════════════
+     TAB 2: ĆWICZENIA
+══════════════════════════════════════════ -->
+<section id="tab-exercises" class="section">
+
+  <div class="sec-header">Wybierz tydzień</div>
+  <div class="tab-bar" style="position:static; top:auto;">
+    <button class="tab active" onclick="switchExWeek(0, this)">Tyg. 13</button>
+    <button class="tab" onclick="switchExWeek(1, this)">Tyg. 14</button>
+    <button class="tab" onclick="switchExWeek(2, this)">Tyg. 15</button>
+    <button class="tab" onclick="switchExWeek(3, this)">Tyg. 16</button>
+  </div>
+
+  <div id="ex-content"></div>
+
+</section>
+
+<!-- ══════════════════════════════════════════
+     TAB 3: ZASADY
+══════════════════════════════════════════ -->
+<section id="tab-rules" class="section">
+
+  <div class="sec-header">Środa · Projekty</div>
+  <div class="rule-block">
+    <div class="rule-head"><span class="rule-icon">🎯</span> Układ nerwowy & Technika</div>
+    <div class="rule-item">
+      <div class="rule-label">Zasada ogólna</div>
+      <div class="rule-text">Wstawki traktujesz jak zawody. Wchodzisz na ścianę w pełni zregenerowany — bez wcześniejszego zmęczenia.</div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-label">Rest między próbami</div>
+      <div class="rule-text">Minimum <strong>3–5 minut</strong> między trudnymi próbami na boulderach. Nie "pompujesz" przedramion — każda próba to maksymalna jakość.</div>
+    </div>
+  </div>
+
+  <div class="sec-header">Piątek · Trening Siłowy</div>
+  <div class="rule-block">
+    <div class="rule-head"><span class="rule-icon">🏋️</span> Budowa Pancerza</div>
+    <div class="rule-item">
+      <div class="rule-label">Pompki</div>
+      <div class="rule-text">Kółka gimnastyczne lub paraletki. Nadgarstek w pozycji neutralnej — brak kompresji na palec wskazujący jak na płaskiej podłodze.</div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-label">Wycisk hantli (barki)</div>
+      <div class="rule-text">Chwyt <strong>neutralny</strong> — dłonie skierowane do siebie. Otwiera przestrzeń podbarkową, zapobiega kłuciu w przednim aktonie barku i ścięgnie bicepsa.</div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-label">Martwy ciąg</div>
+      <div class="rule-text"><strong>Trap Bar (Hex Bar)</strong> — odciąża odcinek lędźwiowy, fokus na pchnięcie z nóg, maksymalna ochrona biodra.</div>
+    </div>
+  </div>
+
+  <div class="sec-header">Sobota · Chwytotablica & Volume</div>
+  <div class="rule-block">
+    <div class="rule-head"><span class="rule-icon">✋</span> Max Hangs & Wspinanie</div>
+    <div class="rule-item">
+      <div class="rule-label">Kolejność — zawsze</div>
+      <div class="rule-text">Max Hangs <strong>zawsze na początku</strong> sesji, po Nerve Glides. Palce muszą być w 100% świeże. Nigdy po wspinaniu.</div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-label">Chwyt</div>
+      <div class="rule-text">Listwa <strong>20 mm</strong>, half-crimp (półotwarty). <strong>Bezwzględny zakaz</strong> zamykania kciuka — ochrona stawu i troczków A1 w palcu wskazującym.</div>
+    </div>
+    <div class="rule-item">
+      <div class="rule-label">Volume — intensywność</div>
+      <div class="rule-text">Wspinanie po zwisach ma być <strong>płynne i łatwe</strong>. Jeśli zaczniesz mocno dyszeć lub pompować — rób dłuższą przerwę. Cel to objętość, nie intensywność.</div>
+    </div>
+  </div>
+
+  <div class="footer">Plan treningowy · Tygodnie 13–16</div>
+</section>
+
+</main>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────
+const weeks = [
+  { label: "Tydzień 13", phase: "Rozruch", isDeload: false },
+  { label: "Tydzień 14", phase: "Progresja · Wyrównanie PR", isDeload: false },
+  { label: "Tydzień 15", phase: "Szczyt · Atak na PR 🔥", isDeload: false },
+  { label: "Tydzień 16", phase: "Deload 🔄", isDeload: true },
+];
+
+const schedule = [
+  // week 0
+  [
+    { day: "Poniedziałek", dot: "d-mon", activity: "SEKCJA", detail: "Brak kontroli" },
+    { day: "Wtorek", dot: "d-tue", activity: "Rower", detail: "40 min · Z1/Z2" },
+    { day: "Środa", dot: "d-wed", activity: "Projekty", detail: "Boulder / Droga · Jakość, powrót po chorobie" },
+    { day: "Czwartek", dot: "d-thu", activity: "REST / Joga", detail: "Nerve Glides" },
+    { day: "Piątek", dot: "d-fri", activity: "Siłownia", detail: "Adaptacja obciążeń · RPE 7–8" },
+    { day: "Sobota", dot: "d-sat", activity: "Max Hangs + Wspinanie", detail: "Bouldery · Baza" },
+    { day: "Niedziela", dot: "d-sun", activity: "REST", detail: "Całkowity" },
+  ],
+  // week 1
+  [
+    { day: "Poniedziałek", dot: "d-mon", activity: "SEKCJA", detail: "Brak kontroli" },
+    { day: "Wtorek", dot: "d-tue", activity: "Rower", detail: "45 min · Z1/Z2" },
+    { day: "Środa", dot: "d-wed", activity: "Projekty", detail: "Boulder / Droga · Progresja trudności" },
+    { day: "Czwartek", dot: "d-thu", activity: "REST / Joga", detail: "Nerve Glides" },
+    { day: "Piątek", dot: "d-fri", activity: "Siłownia", detail: "Mocna progresja · Wyrównanie PR" },
+    { day: "Sobota", dot: "d-sat", activity: "Max Hangs + Wspinanie", detail: "Bouldery · Progresja" },
+    { day: "Niedziela", dot: "d-sun", activity: "REST", detail: "Całkowity" },
+  ],
+  // week 2
+  [
+    { day: "Poniedziałek", dot: "d-mon", activity: "SEKCJA", detail: "Brak kontroli" },
+    { day: "Wtorek", dot: "d-tue", activity: "Rower", detail: "50 min · Z2" },
+    { day: "Środa", dot: "d-wed", activity: "Projekty", detail: "Boulder / Droga · Wysyłka / Szczyt" },
+    { day: "Czwartek", dot: "d-thu", activity: "REST / Joga", detail: "Nerve Glides" },
+    { day: "Piątek", dot: "d-fri", activity: "Siłownia", detail: "Max ciężar · Atak na PR" },
+    { day: "Sobota", dot: "d-sat", activity: "Max Hangs + Wspinanie", detail: "Bouldery · Szczyt" },
+    { day: "Niedziela", dot: "d-sun", activity: "REST", detail: "Całkowity" },
+  ],
+  // week 3 – deload
+  [
+    { day: "Poniedziałek", dot: "d-mon", activity: "SEKCJA", detail: "Brak kontroli" },
+    { day: "Wtorek", dot: "d-tue", activity: "Rower", detail: "30 min · Z1" },
+    { day: "Środa", dot: "d-wed", activity: "Projekty", detail: "Tylko łatwe przejścia · DELOAD" },
+    { day: "Czwartek", dot: "d-thu", activity: "REST / Joga", detail: "Nerve Glides" },
+    { day: "Piątek", dot: "d-fri", activity: "Siłownia", detail: "Objętość −50% · DELOAD" },
+    { day: "Sobota", dot: "d-sat", activity: "Max Hangs", detail: "Tylko aktywacja" },
+    { day: "Niedziela", dot: "d-sun", activity: "REST", detail: "Całkowity" },
+  ],
+];
+
+const exercises = [
+  // ŚRODA
+  {
+    section: "Środa · Projekty",
+    tag: "tag-wed",
+    items: [
+      { name: "Traverse / Łatwe bouldery", meta: "Rest: płynnie", loads: ["15 min","15 min","15 min","15 min"] },
+      { name: "Nerve Glides", meta: "Rest: 30 s między stronami", loads: ["3×10 / ręka","3×10 / ręka","3×10 / ręka","3×10 / ręka"] },
+      { name: "Projekty Boulder", meta: "Rest: 3–5 min / próbę", loads: ["40–50 min","40–50 min","40–50 min","DELOAD"] },
+      { name: "↳ Projekt Główny (trudność)", meta: "", loads: ["7","7 / 7+","7+ / 8–","—"] },
+      { name: "↳ Projekt Zapasowy (trudność)", meta: "", loads: ["6+","7 (inny styl)","7+","6 (flash)"] },
+      { name: "Projekty Drogi", meta: "Rest: 5–8 min / próbę", loads: ["20–30 min","20–30 min","20–30 min","DELOAD"] },
+      { name: "↳ Projekt Drogi (trudność)", meta: "", loads: ["VI.1+","VI.2","VI.2 / VI.2+","V+ (flash)"] },
+    ]
+  },
+  // PIĄTEK
+  {
+    section: "Piątek · Siłownia",
+    tag: "tag-fri",
+    items: [
+      { name: "Podciąganie — chwyt małpi", meta: "Rest: 3 min", loads: ["3×5 @ +12,5 kg","3×5 @ +17,5 kg","4×5 @ +22,5 kg","2×6 @ BW"] },
+      { name: "Pompki na uchwytach", meta: "Rest: 2 min", loads: ["3×8 @ +5 kg","3×8 @ +10 kg","4×8 @ +15 kg","2×10 @ BW"] },
+      { name: "Wycisk hantli siedząc — neutral", meta: "Rest: 2 min", loads: ["3×8 @ 16 kg/str","3×8 @ 18 kg/str","4×8 @ 22 kg/str","2×8 @ 12 kg/str"] },
+      { name: "Martwy Ciąg — Trap Bar", meta: "Rest: 3–4 min", loads: ["3×5 @ 90 kg","3×5 @ 100 kg","4×5 @ 110 kg","2×5 @ 70 kg"] },
+      { name: "Face Pulls z gumą / TRX", meta: "Rest: 90 s", loads: ["3×15 Średni","3×15 Duży","4×15 Max","2×15 Lekki"] },
+      { name: "Plank z odkładaniem ciężaru", meta: "Rest: 60 s", loads: ["3×8/str @ 10 kg","3×10/str @ 15 kg","4×10/str @ 20 kg","2×8/str @ BW"] },
+    ]
+  },
+  // SOBOTA
+  {
+    section: "Sobota · Max Hangs & Volume",
+    tag: "tag-sat",
+    items: [
+      { name: "Rozgrzewka: Nerve Glides", meta: "Rest: 30 s", loads: ["3×10 / ręka","3×10 / ręka","3×10 / ręka","3×10 / ręka"] },
+      { name: "Max Hangs 20 mm Half-Crimp", meta: "Rest: 3 min — ściśle!", loads: ["4×10 s @ +10 kg","5×10 s @ +15 kg","5×10 s @ +22,5 kg","3×10 s @ BW"] },
+      { name: "Wspinanie: Volume / Baza", meta: "Rest: 1–2 min / drogę", loads: ["45 min (RPE 6)","50 min (RPE 7)","60 min (RPE 8)","30 min"] },
+    ]
+  }
+];
+
+// ─── STATE ───────────────────────────────────────────────────────
+let currentWeek = 0;
+let currentExWeek = 0;
+const realData = {};
+const checkedDays = {};
+
+// ─── TAB SWITCH ──────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-bar > .tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ─── WEEK NAV ────────────────────────────────────────────────────
+function changeWeek(dir) {
+  currentWeek = Math.max(0, Math.min(3, currentWeek + dir));
+  renderSchedule();
+}
+
+function renderSchedule() {
+  const w = weeks[currentWeek];
+  document.getElementById('week-label').textContent = w.label;
+  document.getElementById('week-phase').textContent = w.phase;
+  document.getElementById('btn-prev').disabled = currentWeek === 0;
+  document.getElementById('btn-next').disabled = currentWeek === 3;
+
+  for (let i = 0; i < 4; i++) {
+    const d = document.getElementById('dot-' + i);
+    d.className = 'dot' + (i === currentWeek ? ' active' : '');
+  }
+
+  const days = schedule[currentWeek];
+  const html = days.map((d, idx) => {
+    const key = `${currentWeek}-${idx}`;
+    const done = !!checkedDays[key];
+    return `
+    <div class="day-card${done ? ' done' : ''}" id="card-${idx}">
+      <div class="day-header" onclick="toggleDay(${idx})">
+        <div class="day-left">
+          <div class="day-dot ${d.dot}"></div>
+          <div>
+            <div class="day-name">${d.day}</div>
+            <div class="day-activity">${d.activity}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="day-check${done ? ' checked' : ''}" id="chk-${idx}"
+            onclick="toggleCheck(event, ${idx})">✓</div>
+          <span class="day-chevron">▼</span>
+        </div>
+      </div>
+      <div class="day-body">
+        <div class="ex-group">
+          <div class="ex-name">${d.activity}</div>
+          <div class="ex-meta">${d.detail}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('week-content').innerHTML =
+    (w.isDeload ? `<div class="deload-banner">⟳ <strong>Tydzień Deload</strong> — objętość -50%, intensywność niska. Celem jest pełna regeneracja przed kolejnym cyklem.</div>` : '') + html;
+}
+
+function toggleDay(idx) {
+  const card = document.getElementById('card-' + idx);
+  card.classList.toggle('open');
+}
+
+function toggleCheck(e, idx) {
+  e.stopPropagation();
+  const key = `${currentWeek}-${idx}`;
+  checkedDays[key] = !checkedDays[key];
+  renderSchedule();
+}
+
+// ─── EXERCISES ───────────────────────────────────────────────────
+function switchExWeek(idx, btn) {
+  currentExWeek = idx;
+  document.querySelectorAll('#tab-exercises .tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderExercises();
+}
+
+function renderExercises() {
+  const wi = currentExWeek;
+  const isDeload = wi === 3;
+
+  let html = '';
+  exercises.forEach((sec, si) => {
+    html += `<div class="sec-header">${sec.section}</div>`;
+    html += `<div class="rule-block">`;
+    sec.items.forEach((ex, ei) => {
+      const load = ex.loads[wi];
+      const isDL = load === 'DELOAD' || isDeload;
+      const key = `${si}-${ei}-${wi}`;
+      const savedVal = realData[key] || '';
+      html += `
+        <div class="ex-group">
+          <div class="tag ${sec.tag}">${sec.section.split('·')[0].trim()}</div>
+          <div class="ex-name">${ex.name}</div>
+          ${ex.meta ? `<div class="ex-meta">${ex.meta}</div>` : ''}
+          <div class="ex-load${isDL ? ' deload' : ''}">${load}</div>
+          <div class="real-wrap">
+            <span class="real-label">Wykonano:</span>
+            <input class="real-input" type="text" placeholder="wpisz wynik…"
+              value="${savedVal}"
+              onchange="saveReal('${key}', this.value)"
+              inputmode="text">
+          </div>
+        </div>`;
+    });
+    html += `</div>`;
+  });
+
+  document.getElementById('ex-content').innerHTML = html;
+}
+
+function saveReal(key, val) {
+  realData[key] = val;
+}
+
+// ─── INIT ────────────────────────────────────────────────────────
+renderSchedule();
+renderExercises();
+</script>
+</body>
+</html>
