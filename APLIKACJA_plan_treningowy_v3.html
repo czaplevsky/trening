@@ -522,7 +522,7 @@
 <nav>
   <div>
     <div class="nav-title" id="nav-title">Plan Treningowy</div>
-    <div class="nav-sub" id="nav-sub">Wspinaczka & Siłownia · Tygodnie 13–16</div>
+    <div class="nav-sub" id="nav-sub">Brak planu — zaimportuj plik</div>
   </div>
   <div style="display:flex;align-items:center;gap:8px">
     <button class="nav-btn" onclick="document.getElementById('import-file').click()">⬆ Importuj</button>
@@ -548,8 +548,8 @@
 
   <div class="week-nav">
     <div>
-      <div class="week-label" id="week-label">Tydzień 13</div>
-      <div class="week-phase" id="week-phase">Rozruch</div>
+      <div class="week-label" id="week-label">—</div>
+      <div class="week-phase" id="week-phase">—</div>
     </div>
     <div class="week-arrows">
       <button class="arrow-btn" id="btn-prev" onclick="changeWeek(-1)" disabled>←</button>
@@ -639,7 +639,7 @@
     </div>
   </div>
 
-  <div class="footer">Plan treningowy · Tygodnie 13–16</div>
+  <div class="footer">Plan treningowy</div>
 </section>
 -->
 
@@ -665,97 +665,10 @@
 </main>
 
 <script>
-// ─── DATA ────────────────────────────────────────────────────────
-let weeks = [
-  { label: "Tydzień 13", phase: "Rozruch", isDeload: false },
-  { label: "Tydzień 14", phase: "Progresja · Wyrównanie PR", isDeload: false },
-  { label: "Tydzień 15", phase: "Szczyt · Atak na PR 🔥", isDeload: false },
-  { label: "Tydzień 16", phase: "Deload 🔄", isDeload: true },
-];
-
-// Rozszerzona struktura dnia — dodano pola: rpe (string|null), difficulty (string|null)
-let schedule = [
-  // week 0 — Rozruch
-  [
-    { day: "Poniedziałek", dot: "d-mon", activity: "SEKCJA",               detail: "Brak kontroli",                              rpe: null,    difficulty: null },
-    { day: "Wtorek",       dot: "d-tue", activity: "Rower",                 detail: "40 min · Z1/Z2",                             rpe: "5-6",   difficulty: "Easy" },
-    { day: "Środa",        dot: "d-wed", activity: "Projekty",              detail: "Boulder / Droga · Jakość, powrót po chorobie", rpe: "7",     difficulty: "Medium" },
-    { day: "Czwartek",     dot: "d-thu", activity: "REST / Joga",           detail: "Nerve Glides",                               rpe: null,    difficulty: null },
-    { day: "Piątek",       dot: "d-fri", activity: "Siłownia",              detail: "Adaptacja obciążeń",                         rpe: "7-8",   difficulty: "Medium" },
-    { day: "Sobota",       dot: "d-sat", activity: "Max Hangs + Wspinanie", detail: "Bouldery · Baza",                            rpe: "6",     difficulty: "Medium" },
-    { day: "Niedziela",    dot: "d-sun", activity: "REST",                  detail: "Całkowity",                                  rpe: null,    difficulty: null },
-  ],
-  // week 1 — Progresja
-  [
-    { day: "Poniedziałek", dot: "d-mon", activity: "SEKCJA",               detail: "Brak kontroli",                  rpe: null,    difficulty: null },
-    { day: "Wtorek",       dot: "d-tue", activity: "Rower",                 detail: "45 min · Z1/Z2",                 rpe: "5-6",   difficulty: "Easy" },
-    { day: "Środa",        dot: "d-wed", activity: "Projekty",              detail: "Boulder / Droga · Progresja",    rpe: "8",     difficulty: "Hard" },
-    { day: "Czwartek",     dot: "d-thu", activity: "REST / Joga",           detail: "Nerve Glides",                   rpe: null,    difficulty: null },
-    { day: "Piątek",       dot: "d-fri", activity: "Siłownia",              detail: "Mocna progresja · Wyrównanie PR", rpe: "8-9",   difficulty: "Hard" },
-    { day: "Sobota",       dot: "d-sat", activity: "Max Hangs + Wspinanie", detail: "Bouldery · Progresja",           rpe: "7-8",   difficulty: "Hard" },
-    { day: "Niedziela",    dot: "d-sun", activity: "REST",                  detail: "Całkowity",                      rpe: null,    difficulty: null },
-  ],
-  // week 2 — Szczyt
-  [
-    { day: "Poniedziałek", dot: "d-mon", activity: "SEKCJA",               detail: "Brak kontroli",               rpe: null,    difficulty: null },
-    { day: "Wtorek",       dot: "d-tue", activity: "Rower",                 detail: "50 min · Z2",                 rpe: "6",     difficulty: "Easy" },
-    { day: "Środa",        dot: "d-wed", activity: "Projekty",              detail: "Boulder / Droga · Wysyłka",   rpe: "9",     difficulty: "Hard" },
-    { day: "Czwartek",     dot: "d-thu", activity: "REST / Joga",           detail: "Nerve Glides",                rpe: null,    difficulty: null },
-    { day: "Piątek",       dot: "d-fri", activity: "Siłownia",              detail: "Max ciężar · Atak na PR",     rpe: "9-10",  difficulty: "Hard" },
-    { day: "Sobota",       dot: "d-sat", activity: "Max Hangs + Wspinanie", detail: "Bouldery · Szczyt",           rpe: "8-9",   difficulty: "Hard" },
-    { day: "Niedziela",    dot: "d-sun", activity: "REST",                  detail: "Całkowity",                   rpe: null,    difficulty: null },
-  ],
-  // week 3 — Deload
-  [
-    { day: "Poniedziałek", dot: "d-mon", activity: "SEKCJA",    detail: "Brak kontroli",            rpe: null,  difficulty: null },
-    { day: "Wtorek",       dot: "d-tue", activity: "Rower",      detail: "30 min · Z1",              rpe: "4",   difficulty: "Easy" },
-    { day: "Środa",        dot: "d-wed", activity: "Projekty",   detail: "Tylko łatwe · DELOAD",     rpe: "5",   difficulty: "Deload" },
-    { day: "Czwartek",     dot: "d-thu", activity: "REST / Joga", detail: "Nerve Glides",            rpe: null,  difficulty: null },
-    { day: "Piątek",       dot: "d-fri", activity: "Siłownia",   detail: "Objętość −50% · DELOAD",   rpe: "5-6", difficulty: "Deload" },
-    { day: "Sobota",       dot: "d-sat", activity: "Max Hangs",  detail: "Tylko aktywacja",          rpe: "5",   difficulty: "Deload" },
-    { day: "Niedziela",    dot: "d-sun", activity: "REST",        detail: "Całkowity",               rpe: null,  difficulty: null },
-  ],
-];
-
-let exercises = [
-  // ŚRODA
-  {
-    section: "Środa · Projekty",
-    tag: "tag-wed",
-    items: [
-      { name: "Traverse / Łatwe bouldery", meta: "Rest: płynnie", loads: ["15 min","15 min","15 min","15 min"] },
-      { name: "Nerve Glides", meta: "Rest: 30 s między stronami", loads: ["3×10 / ręka","3×10 / ręka","3×10 / ręka","3×10 / ręka"] },
-      { name: "Projekty Boulder", meta: "Rest: 3–5 min / próbę", loads: ["40–50 min","40–50 min","40–50 min","DELOAD"] },
-      { name: "↳ Projekt Główny (trudność)", meta: "", loads: ["7","7 / 7+","7+ / 8–","—"] },
-      { name: "↳ Projekt Zapasowy (trudność)", meta: "", loads: ["6+","7 (inny styl)","7+","6 (flash)"] },
-      { name: "Projekty Drogi", meta: "Rest: 5–8 min / próbę", loads: ["20–30 min","20–30 min","20–30 min","DELOAD"] },
-      { name: "↳ Projekt Drogi (trudność)", meta: "", loads: ["VI.1+","VI.2","VI.2 / VI.2+","V+ (flash)"] },
-    ]
-  },
-  // PIĄTEK
-  {
-    section: "Piątek · Siłownia",
-    tag: "tag-fri",
-    items: [
-      { name: "Podciąganie — chwyt małpi", meta: "Rest: 3 min", loads: ["3×5 @ +12,5 kg","3×5 @ +17,5 kg","4×5 @ +22,5 kg","2×6 @ BW"] },
-      { name: "Pompki na uchwytach", meta: "Rest: 2 min", loads: ["3×8 @ +5 kg","3×8 @ +10 kg","4×8 @ +15 kg","2×10 @ BW"] },
-      { name: "Wycisk hantli siedząc — neutral", meta: "Rest: 2 min", loads: ["3×8 @ 16 kg/str","3×8 @ 18 kg/str","4×8 @ 22 kg/str","2×8 @ 12 kg/str"] },
-      { name: "Martwy Ciąg — Trap Bar", meta: "Rest: 3–4 min", loads: ["3×5 @ 90 kg","3×5 @ 100 kg","4×5 @ 110 kg","2×5 @ 70 kg"] },
-      { name: "Face Pulls z gumą / TRX", meta: "Rest: 90 s", loads: ["3×15 Średni","3×15 Duży","4×15 Max","2×15 Lekki"] },
-      { name: "Plank z odkładaniem ciężaru", meta: "Rest: 60 s", loads: ["3×8/str @ 10 kg","3×10/str @ 15 kg","4×10/str @ 20 kg","2×8/str @ BW"] },
-    ]
-  },
-  // SOBOTA
-  {
-    section: "Sobota · Max Hangs & Volume",
-    tag: "tag-sat",
-    items: [
-      { name: "Rozgrzewka: Nerve Glides", meta: "Rest: 30 s", loads: ["3×10 / ręka","3×10 / ręka","3×10 / ręka","3×10 / ręka"] },
-      { name: "Max Hangs 20 mm Half-Crimp", meta: "Rest: 3 min — ściśle!", loads: ["4×10 s @ +10 kg","5×10 s @ +15 kg","5×10 s @ +22,5 kg","3×10 s @ BW"] },
-      { name: "Wspinanie: Volume / Baza", meta: "Rest: 1–2 min / drogę", loads: ["45 min (RPE 6)","50 min (RPE 7)","60 min (RPE 8)","30 min"] },
-    ]
-  }
-];
+// ─── DATA — ładowane z localStorage przy starcie, uzupełniane przez import ──
+let weeks     = [];
+let schedule  = [];
+let exercises = [];
 
 // ─── STATE ───────────────────────────────────────────────────────
 let currentWeek = 0;
@@ -801,6 +714,17 @@ function buildBadges(d) {
 
 // ─── RENDER SCHEDULE ─────────────────────────────────────────────
 function renderSchedule() {
+  if (!weeks.length) {
+    document.getElementById('week-label').textContent = 'Brak planu';
+    document.getElementById('week-phase').textContent = 'Zaimportuj plik, żeby zacząć';
+    document.getElementById('btn-prev').disabled = true;
+    document.getElementById('btn-next').disabled = true;
+    document.getElementById('week-content').innerHTML =
+      `<div style="text-align:center;padding:48px 24px;color:var(--text-3);font-size:14px">
+        Naciśnij <strong>⬆ Importuj</strong>, żeby wczytać plan treningowy.
+      </div>`;
+    return;
+  }
   const w = weeks[currentWeek];
   document.getElementById('week-label').textContent = w.label;
   document.getElementById('week-phase').textContent = w.phase;
@@ -868,6 +792,13 @@ function switchExWeek(idx, btn) {
 }
 
 function renderExercises() {
+  if (!exercises.length) {
+    document.getElementById('ex-content').innerHTML =
+      `<div style="text-align:center;padding:48px 24px;color:var(--text-3);font-size:14px">
+        Naciśnij <strong>⬆ Importuj</strong>, żeby wczytać plan treningowy.
+      </div>`;
+    return;
+  }
   const wi = currentExWeek;
   const isDeload = wi === weeks.length - 1;
 
@@ -1188,6 +1119,17 @@ function handleImport(input) {
 
       // Aktualizacja nagłówka nawigatora
       const planName = data.planName || (weeks[0] && weeks[0].label) || 'Plan Treningowy';
+
+      // ── ZAPIS PLANU DO localStorage — żeby przeżył zamknięcie app ──
+      try {
+        localStorage.setItem('importedPlan', JSON.stringify({
+          weeks: normWeeks,
+          schedule: normSchedule,
+          exercises: normExercises,
+          planName: planName,
+          exportDate: data.exportDate || null
+        }));
+      } catch(e) {}
       document.getElementById('nav-title').textContent = planName;
       if (data.exportDate) {
         document.getElementById('nav-sub').textContent = 'Zaimportowano · ' + data.exportDate;
@@ -1224,7 +1166,44 @@ function handleImport(input) {
   reader.readAsText(file, 'UTF-8');
 }
 
-// ─── INIT ────────────────────────────────────────────────────────
+// ─── INIT — odtwórz importowany plan z localStorage ──────────────
+(function restoreImportedPlan() {
+  try {
+    const saved = localStorage.getItem('importedPlan');
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    if (!data.weeks || !data.schedule || !data.exercises) return;
+
+    // Podmień dane w globalnych tablicach
+    weeks.length = 0;
+    weeks.push(...data.weeks);
+
+    schedule.length = 0;
+    schedule.push(...data.schedule);
+
+    exercises.length = 0;
+    exercises.push(...data.exercises);
+
+    // Przywróć nagłówek
+    if (data.planName) {
+      const titleEl = document.getElementById('nav-title');
+      if (titleEl) titleEl.textContent = data.planName;
+    }
+    if (data.exportDate) {
+      const subEl = document.getElementById('nav-sub');
+      if (subEl) subEl.textContent = 'Zaimportowano · ' + data.exportDate;
+    }
+
+    // Przerysuj dotsów i taby
+    const dotsContainer = document.querySelector('.week-dots');
+    if (dotsContainer) {
+      dotsContainer.innerHTML = weeks.map((_, i) =>
+        `<div class="dot${i === 0 ? ' active' : ''}" id="dot-${i}"></div>`
+      ).join('');
+    }
+  } catch(e) {}
+})();
+
 rebuildExWeekTabs();
 renderSchedule();
 renderExercises();
