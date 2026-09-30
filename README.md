@@ -1,1 +1,1 @@
-# treningping 1790793020
+# trening
